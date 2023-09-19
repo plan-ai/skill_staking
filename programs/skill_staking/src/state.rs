@@ -59,3 +59,12 @@ pub struct SkillStake {
     pub stakers: Vec<Pubkey>,
     pub in_use: bool,
 }
+
+#[account]
+#[derive(InitSpace)]
+pub struct Multisig {
+    pub bump: u8,
+    #[max_len(3)]
+    pub owners: Vec<Pubkey>,
+    pub threshold: u64,
+}

@@ -13,4 +13,8 @@ pub enum DefiOSError {
     //6002
     #[msg("Unauthorized smart contract Action")]
     UnauthorizedActionAttempted,
+
+    // 6003
+    #[msg("Insufficient funds for staking")]
+    InsufficientStakingFunds,
 }

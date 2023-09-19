@@ -2,7 +2,7 @@ use crate::{
     constant::AUTHORIZED_PUBLIC_KEY,
     error::DefiOSError,
     event::FreelancerAssigned,
-    state::{Bounty, Freelancer},
+    state::{Bounty, Freelancer, Multisig},
 };
 use anchor_lang::prelude::*;
 
@@ -21,6 +21,18 @@ pub struct AssignFreelancer<'info> {
     )]
     pub freelance_account: Account<'info, Freelancer>,
     #[account(
+        init,
+        payer = authority,
+        space = 8+Multisig::INIT_SPACE,
+        seeds = [
+            b"multisig",
+            freelancer.key().as_ref(),
+            bounty_account.bounty_creator.as_ref()
+        ],
+        bump,
+    )]
+    pub multisig: Account<'info, Multisig>,
+    #[account(
         mut,
         seeds = [
             b"bounty",
@@ -36,8 +48,17 @@ pub struct AssignFreelancer<'info> {
 pub fn handler(ctx: Context<AssignFreelancer>) -> Result<()> {
     let freelancer = &ctx.accounts.freelancer;
     let bounty_account = &mut ctx.accounts.bounty_account;
+    let multisig = &mut ctx.accounts.multisig;
 
     bounty_account.bounty_assigned = Some(freelancer.key());
+
+    multisig.bump = *ctx.bumps.get("multisig").unwrap();
+    multisig.owners = vec![
+        freelancer.key(),
+        AUTHORIZED_PUBLIC_KEY,
+        bounty_account.bounty_creator,
+    ];
+    multisig.threshold = 2;
 
     emit!(FreelancerAssigned {
         bounty: bounty_account.key(),
