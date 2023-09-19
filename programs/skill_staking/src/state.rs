@@ -33,6 +33,8 @@ pub struct Bounty {
     pub bounty_skillset: Vec<String>,
     pub bounty_deadline: Option<u64>,
     pub bounty_assigned: Option<Pubkey>,
+    #[max_len(75)]
+    pub bounty_appliers: Vec<Pubkey>,
 }
 
 #[account]

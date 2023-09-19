@@ -38,6 +38,7 @@ pub fn handler(
     bounty_account.bounty_skillset = bounty_skillset.clone();
     bounty_account.bounty_deadline = bounty_deadline;
     bounty_account.bounty_assigned = None;
+    bounty_account.bounty_appliers = vec![];
 
     emit!(BountyCreated {
         bounty_creator: bounty_creator.key(),

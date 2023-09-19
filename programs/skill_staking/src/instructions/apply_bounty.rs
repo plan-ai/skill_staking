@@ -1,17 +1,12 @@
 use crate::{
-    constant::AUTHORIZED_PUBLIC_KEY,
-    error::DefiOSError,
-    event::FreelancerAssigned,
+    event::BountyApplied,
     state::{Bounty, Freelancer},
 };
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-pub struct AssignFreelancer<'info> {
-    ///CHECK: This is not dangerous public key constraint is already set
-    #[account(mut, signer,constraint=AUTHORIZED_PUBLIC_KEY.eq(&authority.key())@DefiOSError::UnauthorizedActionAttempted)]
-    pub authority: AccountInfo<'info>,
-    pub freelancer: SystemAccount<'info>,
+pub struct ApplyBounty<'info> {
+    pub freelancer: Signer<'info>,
     #[account(
         seeds = [
             b"freelance",
@@ -33,13 +28,13 @@ pub struct AssignFreelancer<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<AssignFreelancer>) -> Result<()> {
+pub fn handler(ctx: Context<ApplyBounty>) -> Result<()> {
     let freelancer = &ctx.accounts.freelancer;
     let bounty_account = &mut ctx.accounts.bounty_account;
 
-    bounty_account.bounty_assigned = Some(freelancer.key());
+    bounty_account.bounty_appliers.push(freelancer.key());
 
-    emit!(FreelancerAssigned {
+    emit!(BountyApplied {
         bounty: bounty_account.key(),
         freelancer: freelancer.key()
     });
