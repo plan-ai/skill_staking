@@ -21,7 +21,6 @@ pub struct VerifiedUser {
     pub user_pubkey: Pubkey,
 }
 
-
 #[account]
 #[derive(InitSpace)]
 pub struct Bounty {
@@ -30,20 +29,20 @@ pub struct Bounty {
     #[max_len(100)]
     pub bounty_metadata: String,
     pub bounty_reward: u64,
-    #[max_len(40,40)]
+    #[max_len(40, 40)]
     pub bounty_skillset: Vec<String>,
     pub bounty_deadline: Option<u64>,
-    pub bounty_assigned: Option<Pubkey>
+    pub bounty_assigned: Option<Pubkey>,
 }
 
 #[account]
 #[derive(InitSpace)]
-pub struct Freelancer{
+pub struct Freelancer {
     pub bump: u8,
     pub freelancer: Pubkey,
     #[max_len(100)]
-    pub user_metadata: String
-} 
+    pub user_metadata: String,
+}
 
 #[account]
 #[derive(InitSpace)]
@@ -56,5 +55,5 @@ pub struct SkillStake {
     pub stake_amounts: Vec<u64>,
     #[max_len(50)]
     pub stakers: Vec<Pubkey>,
-    pub in_use: bool
+    pub in_use: bool,
 }

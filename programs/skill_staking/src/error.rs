@@ -9,5 +9,4 @@ pub enum DefiOSError {
     // 6001
     #[msg("User not verified")]
     UnauthorizedUser,
-
 }

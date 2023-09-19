@@ -1,7 +1,7 @@
 use crate::{
     error::DefiOSError,
     event::FreelancerCreated,
-    state::{NameRouter, VerifiedUser, Freelancer},
+    state::{Freelancer, VerifiedUser},
 };
 use anchor_lang::prelude::*;
 
@@ -31,14 +31,11 @@ pub struct AddFreelancer<'info> {
         ],
         bump
     )]
-    pub freelance_account: Box<Account<'info, Freelancer>>,
+    pub freelance_account: Account<'info, Freelancer>,
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(
-    ctx: Context<AddFreelancer>,
-    freelancer_metadata: String
-) -> Result<()> {
+pub fn handler(ctx: Context<AddFreelancer>, freelancer_metadata: String) -> Result<()> {
     let freelancer = &ctx.accounts.freelancer;
     let freelance_account = &mut ctx.accounts.freelance_account;
 
@@ -46,9 +43,9 @@ pub fn handler(
     freelance_account.freelancer = freelancer.key();
     freelance_account.user_metadata = freelancer_metadata.clone();
 
-    emit!(FreelancerCreated{
+    emit!(FreelancerCreated {
         freelancer: freelancer.key(),
-        freelancer_metadata: freelancer_metadata  
+        freelancer_metadata: freelancer_metadata
     });
 
     Ok(())

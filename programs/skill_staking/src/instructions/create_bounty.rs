@@ -1,8 +1,4 @@
-use crate::{
-    error::DefiOSError,
-    event::BountyCreated,
-    state::{NameRouter, VerifiedUser, Bounty},
-};
+use crate::{event::BountyCreated, state::Bounty};
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -43,9 +39,9 @@ pub fn handler(
     bounty_account.bounty_deadline = bounty_deadline;
     bounty_account.bounty_assigned = None;
 
-    emit!(BountyCreated{
+    emit!(BountyCreated {
         bounty_creator: bounty_creator.key(),
-        bounty_metadata: bounty_metadata, 
+        bounty_metadata: bounty_metadata,
         bounty_reward: bounty_reward,
         bounty_skillsets: bounty_skillset
     });
