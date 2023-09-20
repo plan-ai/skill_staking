@@ -17,4 +17,8 @@ pub enum DefiOSError {
     // 6003
     #[msg("Insufficient funds for staking")]
     InsufficientStakingFunds,
+
+    // 6004
+    #[msg("Token account mismatch")]
+    TokenAccountMismatch,
 }

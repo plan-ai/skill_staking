@@ -40,7 +40,6 @@ pub struct SkillsetStaked {
     pub freelancer: Pubkey,
     pub skillset: String,
     pub stake_amount: u64,
-    pub in_use: bool,
 }
 
 #[event]
@@ -83,4 +82,11 @@ pub struct BountyApplied {
 pub struct FreelancerAssigned {
     pub bounty: Pubkey,
     pub freelancer: Pubkey,
+}
+
+#[event]
+pub struct BountyClaimed{
+    pub bounty: Pubkey,
+    pub freelancer: Pubkey,
+    pub claimed_amount: u64
 }

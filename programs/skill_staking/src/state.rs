@@ -35,6 +35,7 @@ pub struct Bounty {
     pub bounty_assigned: Option<Pubkey>,
     #[max_len(75)]
     pub bounty_appliers: Vec<Pubkey>,
+    pub bounty_closed: bool,
 }
 
 #[account]
@@ -44,6 +45,8 @@ pub struct Freelancer {
     pub freelancer: Pubkey,
     #[max_len(100)]
     pub user_metadata: String,
+    #[max_len(50, 40)]
+    pub skills: Vec<String>,
 }
 
 #[account]
@@ -57,7 +60,7 @@ pub struct SkillStake {
     pub stake_amounts: Vec<u64>,
     #[max_len(50)]
     pub stakers: Vec<Pubkey>,
-    pub in_use: bool,
+    pub total_skill_stake: u64,
 }
 
 #[account]

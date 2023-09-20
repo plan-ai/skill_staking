@@ -1,7 +1,6 @@
 use crate::{
-    constant::AUTHORIZED_PUBLIC_KEY,
     error::DefiOSError,
-    event::FreelancerAssigned,
+    event::BountyWon,
     state::{Bounty, Freelancer, Multisig},
 };
 use anchor_lang::prelude::*;
@@ -28,16 +27,14 @@ pub struct AcceptBounty<'info> {
         bump=multisig.bump
     )]
     pub multisig: Account<'info, Multisig>,
-    pub bounty_creator: SystemAccount<'info>,
     #[account(
         mut,
         seeds = [
             b"bounty",
-            bounty_creator.key().as_ref(),
+            bounty_account.bounty_creator.key().as_ref(),
             bounty_account.bounty_metadata.as_bytes()
         ],
         bump = bounty_account.bump,
-        close = bounty_creator
     )]
     pub bounty_account: Account<'info, Bounty>,
     pub system_program: Program<'info, System>,
@@ -47,6 +44,22 @@ pub fn handler(ctx: Context<AcceptBounty>) -> Result<()> {
     let first_signer = &ctx.accounts.first_signer;
     let second_signer = &mut ctx.accounts.second_signer;
     let multisig = &mut ctx.accounts.multisig;
+    let bounty_account = &mut ctx.accounts.bounty_account;
+    let freelancer = &ctx.accounts.freelancer;
+
+    require!(
+        multisig.owners.contains(&first_signer.key())
+            && multisig.owners.contains(&second_signer.key()),
+        DefiOSError::UnauthorizedActionAttempted
+    );
+
+    bounty_account.bounty_closed = true;
+
+    emit!(BountyWon {
+        bounty: bounty_account.key(),
+        freelancer: freelancer.key(),
+        bounty_reward: bounty_account.bounty_reward
+    });
 
     Ok(())
 }

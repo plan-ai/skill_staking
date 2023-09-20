@@ -6,7 +6,7 @@ use crate::{
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(skill:String)]
+#[instruction(skill:String,stake_amount:u64)]
 pub struct StakeSkillset<'info> {
     #[account(mut)]
     pub staker: Signer<'info>,
@@ -46,15 +46,17 @@ pub fn handler(ctx: Context<StakeSkillset>, skill: String, stake_amount: u64) ->
         skill_stake.stake_amounts[index] += stake_amount;
     } else {
         skill_stake.stake_amounts.push(stake_amount);
-        skill_stake.stakers.push(staker.key())
+        skill_stake.stakers.push(staker.key());
+        freelance_account.skills.push(skill.clone())
     }
+
+    skill_stake.total_skill_stake += stake_amount;
 
     emit!(SkillsetStaked {
         staker: staker.key(),
         freelancer: freelance_account.freelancer.key(),
         skillset: skill,
         stake_amount: stake_amount,
-        in_use: skill_stake.in_use
     });
 
     Ok(())
