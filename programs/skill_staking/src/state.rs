@@ -29,13 +29,15 @@ pub struct Bounty {
     #[max_len(100)]
     pub bounty_metadata: String,
     pub bounty_reward: u64,
-    #[max_len(40, 40)]
+    #[max_len(5, 40)]
     pub bounty_skillset: Vec<String>,
     pub bounty_deadline: Option<u64>,
     pub bounty_assigned: Option<Pubkey>,
     #[max_len(75)]
     pub bounty_appliers: Vec<Pubkey>,
     pub bounty_closed: bool,
+    #[max_len(250)]
+    pub claimed: Vec<Pubkey>,
 }
 
 #[account]
@@ -46,7 +48,7 @@ pub struct Freelancer {
     #[max_len(100)]
     pub user_metadata: String,
     #[max_len(50, 40)]
-    pub skills: Vec<String>
+    pub skills: Vec<String>,
 }
 
 #[account]

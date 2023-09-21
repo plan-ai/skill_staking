@@ -1,15 +1,15 @@
 use crate::{
+    error::DefiOSError,
     event::SkillsetStaked,
     helper::find_index,
     state::{Freelancer, SkillStake},
-    error::DefiOSError
 };
+use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
     mint::USDC,
     token::{transfer, Mint, Token, TokenAccount, Transfer},
 };
-use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 #[instruction(skill:String,stake_amount:u64)]
@@ -55,7 +55,7 @@ pub struct StakeSkillset<'info> {
     pub skill_stake_token_account: Account<'info, TokenAccount>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
-    pub system_program: Program<'info, System>
+    pub system_program: Program<'info, System>,
 }
 
 pub fn handler(ctx: Context<StakeSkillset>, skill: String, stake_amount: u64) -> Result<()> {

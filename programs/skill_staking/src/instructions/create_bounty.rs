@@ -66,6 +66,7 @@ pub fn handler(
     bounty_account.bounty_deadline = bounty_deadline;
     bounty_account.bounty_assigned = None;
     bounty_account.bounty_appliers = vec![];
+    bounty_account.claimed = vec![];
 
     transfer(
         CpiContext::new(

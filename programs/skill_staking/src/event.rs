@@ -85,8 +85,15 @@ pub struct FreelancerAssigned {
 }
 
 #[event]
-pub struct BountyClaimed{
+pub struct BountyClaimed {
     pub bounty: Pubkey,
     pub freelancer: Pubkey,
-    pub claimed_amount: u64
+    pub claimed_amount: u64,
+}
+
+#[event]
+pub struct RewardClaimed {
+    pub bounty: Pubkey,
+    pub staker: Pubkey,
+    pub claimed_amount: u64,
 }

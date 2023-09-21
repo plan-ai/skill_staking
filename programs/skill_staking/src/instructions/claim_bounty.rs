@@ -1,9 +1,4 @@
-use crate::{
-    constant::PROTOCOL_FEE,
-    error::DefiOSError,
-    event::BountyClaimed,
-    state::Bounty,
-};
+use crate::{constant::PROTOCOL_FEE, error::DefiOSError, event::BountyClaimed, state::Bounty};
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::{
@@ -106,7 +101,7 @@ pub fn handler(ctx: Context<ClaimBounty>) -> Result<()> {
         claimed_amount,
     )?;
 
-    emit!(BountyClaimed{
+    emit!(BountyClaimed {
         bounty: bounty_account.key(),
         freelancer: claimer.key(),
         claimed_amount: claimed_amount
