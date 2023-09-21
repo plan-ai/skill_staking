@@ -31,7 +31,7 @@ pub struct ClaimBounty<'info> {
     /// CHECK: PDA check is done at the handler function
     #[account(mut)]
     pub claimer_token_account: UncheckedAccount<'info>,
-    #[account(address=USDC)]
+    // #[account(address=USDC)]
     pub usdc_mint: Account<'info, Mint>,
     pub system_program: Program<'info, System>,
     pub associated_token_program: Program<'info, AssociatedToken>,

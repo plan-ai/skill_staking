@@ -19,7 +19,7 @@ pub struct CreateBounty<'info> {
         constraint = bounty_creator_token_account.mint == usdc_mint.key()
     )]
     pub bounty_creator_token_account: Account<'info, TokenAccount>,
-    #[account(address=USDC)]
+    // #[account(address=USDC)]
     pub usdc_mint: Account<'info, Mint>,
     #[account(
         init,

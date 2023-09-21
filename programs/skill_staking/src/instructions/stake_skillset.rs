@@ -25,7 +25,7 @@ pub struct StakeSkillset<'info> {
         bump = freelance_account.bump
     )]
     pub freelance_account: Account<'info, Freelancer>,
-    #[account(address=USDC)]
+    // #[account(address=USDC)]
     pub usdc_mint: Account<'info, Mint>,
     #[account(
         mut,

@@ -26,7 +26,7 @@ pub struct ClaimReward<'info> {
         bump = bounty_account.bump,
     )]
     pub bounty_account: Account<'info, Bounty>,
-    #[account(address=USDC)]
+    // #[account(address=USDC)]
     pub usdc_mint: Account<'info, Mint>,
     #[account(
         mut,
