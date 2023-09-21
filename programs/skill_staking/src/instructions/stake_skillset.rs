@@ -2,6 +2,12 @@ use crate::{
     event::SkillsetStaked,
     helper::find_index,
     state::{Freelancer, SkillStake},
+    error::DefiOSError
+};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    mint::USDC,
+    token::{transfer, Mint, Token, TokenAccount, Transfer},
 };
 use anchor_lang::prelude::*;
 
@@ -19,6 +25,15 @@ pub struct StakeSkillset<'info> {
         bump = freelance_account.bump
     )]
     pub freelance_account: Account<'info, Freelancer>,
+    #[account(address=USDC)]
+    pub usdc_mint: Account<'info, Mint>,
+    #[account(
+        mut,
+        constraint = staker_token_account.owner.eq(&staker.key()),
+        constraint = staker_token_account.amount >= stake_amount @ DefiOSError::InsufficientStakingFunds,
+        constraint = staker_token_account.mint == usdc_mint.key()
+    )]
+    pub staker_token_account: Account<'info, TokenAccount>,
     #[account(
         init_if_needed,
         space = 8+SkillStake::INIT_SPACE,
@@ -31,13 +46,25 @@ pub struct StakeSkillset<'info> {
         bump
     )]
     pub skill_stake: Account<'info, SkillStake>,
-    pub system_program: Program<'info, System>,
+    #[account(
+        init_if_needed,
+        payer = staker,
+        associated_token::mint = usdc_mint,
+        associated_token::authority = skill_stake,
+    )]
+    pub skill_stake_token_account: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>
 }
 
 pub fn handler(ctx: Context<StakeSkillset>, skill: String, stake_amount: u64) -> Result<()> {
     let staker = &ctx.accounts.staker;
     let freelance_account = &mut ctx.accounts.freelance_account;
     let skill_stake = &mut ctx.accounts.skill_stake;
+    let token_program = &ctx.accounts.token_program;
+    let staker_token_account = &mut ctx.accounts.staker_token_account;
+    let skill_stake_token_account = &mut ctx.accounts.skill_stake_token_account;
 
     skill_stake.freelancer = freelance_account.freelancer;
     skill_stake.skill = skill.clone();
@@ -51,6 +78,18 @@ pub fn handler(ctx: Context<StakeSkillset>, skill: String, stake_amount: u64) ->
     }
 
     skill_stake.total_skill_stake += stake_amount;
+
+    transfer(
+        CpiContext::new(
+            token_program.to_account_info(),
+            Transfer {
+                from: staker_token_account.to_account_info(),
+                to: skill_stake_token_account.to_account_info(),
+                authority: staker.to_account_info(),
+            },
+        ),
+        stake_amount,
+    )?;
 
     emit!(SkillsetStaked {
         staker: staker.key(),

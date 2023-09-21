@@ -46,7 +46,7 @@ pub struct Freelancer {
     #[max_len(100)]
     pub user_metadata: String,
     #[max_len(50, 40)]
-    pub skills: Vec<String>,
+    pub skills: Vec<String>
 }
 
 #[account]
