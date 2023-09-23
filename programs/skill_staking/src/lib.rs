@@ -47,15 +47,17 @@ pub mod skill_staking {
 
     pub fn create_bounty(
         ctx: Context<CreateBounty>,
-        bounty_metadata: String,
+        bounty_index: String,
         bounty_reward: u64,
+        bounty_metadata: String,
         bounty_skillset: Vec<String>,
         bounty_deadline: Option<u64>,
     ) -> Result<()> {
         create_bounty::handler(
             ctx,
-            bounty_metadata,
+            bounty_index,
             bounty_reward,
+            bounty_metadata,
             bounty_skillset,
             bounty_deadline,
         )

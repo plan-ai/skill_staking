@@ -8,7 +8,7 @@ use anchor_spl::{
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(bounty_metadata: String,bounty_reward:u64)]
+#[instruction(bounty_index: String,bounty_reward:u64)]
 pub struct CreateBounty<'info> {
     #[account(mut)]
     pub bounty_creator: Signer<'info>,
@@ -28,7 +28,7 @@ pub struct CreateBounty<'info> {
         seeds = [
             b"bounty",
             bounty_creator.key().as_ref(),
-            bounty_metadata.as_bytes()
+            bounty_index.as_bytes()
         ],
         bump
     )]
@@ -47,8 +47,9 @@ pub struct CreateBounty<'info> {
 
 pub fn handler(
     ctx: Context<CreateBounty>,
-    bounty_metadata: String,
+    bounty_index: String,
     bounty_reward: u64,
+    bounty_metadata: String,
     bounty_skillset: Vec<String>,
     bounty_deadline: Option<u64>,
 ) -> Result<()> {
@@ -58,7 +59,7 @@ pub fn handler(
     let bounty_creator_token_account = &mut ctx.accounts.bounty_creator_token_account;
     let bounty_token_account = &mut ctx.accounts.bounty_token_account;
 
-    bounty_account.bump = *ctx.bumps.get("bump_account").unwrap();
+    bounty_account.bump = *ctx.bumps.get("bounty_account").unwrap();
     bounty_account.bounty_creator = bounty_creator.key();
     bounty_account.bounty_metadata = bounty_metadata.clone();
     bounty_account.bounty_reward = bounty_reward;
@@ -67,6 +68,7 @@ pub fn handler(
     bounty_account.bounty_assigned = None;
     bounty_account.bounty_appliers = vec![];
     bounty_account.claimed = vec![];
+    bounty_account.index = bounty_index;
 
     transfer(
         CpiContext::new(

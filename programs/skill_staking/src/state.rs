@@ -36,8 +36,10 @@ pub struct Bounty {
     #[max_len(75)]
     pub bounty_appliers: Vec<Pubkey>,
     pub bounty_closed: bool,
-    #[max_len(250)]
+    #[max_len(150)]
     pub claimed: Vec<Pubkey>,
+    #[max_len(10)]
+    pub index: String
 }
 
 #[account]

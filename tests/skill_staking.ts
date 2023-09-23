@@ -4,6 +4,14 @@ import { SkillStaking } from "../target/types/skill_staking";
 import { PublicKey } from "@saberhq/solana-contrib";
 import * as ed from "@noble/ed25519";
 import { rpcConfig } from "./rpcConfig";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID,
+  createMint,
+  createAssociatedTokenAccount,
+  mintTo,
+} from "@solana/spl-token";
 
 describe("skill_staking", () => {
   // Configure the client to use the local cluster.
@@ -20,6 +28,9 @@ describe("skill_staking", () => {
   const userPubkey = new PublicKey(
     "81sWMLg1EgYps3nMwyeSW1JfjKgFqkGYPP85vTnkFzRn"
   );
+  const testMetadataLink =
+    "https://github.com/defi-os/defios-rust-core.ts";
+  const stakeAmount = 1;
   async function create_keypair() {
     const keypair = web3.Keypair.generate();
     await connection.confirmTransaction(
@@ -141,5 +152,84 @@ describe("skill_staking", () => {
       nameRouterAccount,
       userPubkey
     );
+  });
+
+  it("Add freelacer", async () => {
+    const [routerCreatorKeypair, nameRouterAccount] =
+      await create_name_router();
+
+    const freelancer = await create_keypair();
+    const [verifiedUserAccount] = await create_verified_user(
+      routerCreatorKeypair,
+      nameRouterAccount,
+      freelancer.publicKey
+    );
+
+    const [freelanceAccount] = await get_pda_from_seeds([
+      Buffer.from("freelance"),
+      freelancer.publicKey.toBuffer(),
+    ]);
+
+    await program.methods
+      .addFreelancer(testMetadataLink)
+      .accounts({
+        freelancer: freelancer.publicKey,
+        freelancerVerifiedUser: verifiedUserAccount,
+        freelanceAccount: freelanceAccount,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([freelancer])
+      .rpc(rpcConfig);
+  });
+  it("Create Bounty", async () => {
+    const bountyCreator = await create_keypair();
+    const mintAuthority = await create_keypair();
+    const mintAddress = await createMint(
+      connection,
+      mintAuthority,
+      mintAuthority.publicKey,
+      mintAuthority.publicKey,
+      6
+    );
+    const bountyCreatorTokenAddress = await createAssociatedTokenAccount(
+      connection,
+      bountyCreator,
+      mintAddress,
+      bountyCreator.publicKey
+    );
+    const [bounty] = await get_pda_from_seeds([
+      Buffer.from("bounty"),
+      bountyCreator.publicKey.toBuffer(),
+      Buffer.from("1"),
+    ]);
+    
+    const bountyTokenAddress = await getAssociatedTokenAddress(
+      mintAddress,
+      bounty,
+      true
+    );
+    await mintTo(
+      connection,
+      bountyCreator,
+      mintAddress,
+      bountyCreatorTokenAddress,
+      mintAuthority,
+      stakeAmount
+    );
+
+    await program.methods
+      .createBounty("1", new anchor.BN(stakeAmount), testMetadataLink,[], null)
+      .accounts({
+        bountyCreator: bountyCreator.publicKey,
+        bountyCreatorTokenAccount: bountyCreatorTokenAddress,
+        bountyAccount: bounty,
+        bountyTokenAccount: bountyTokenAddress,
+        systemProgram: web3.SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        usdcMint: mintAddress,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      })
+      .signers([bountyCreator])
+      .rpc(rpcConfig);
   });
 });
