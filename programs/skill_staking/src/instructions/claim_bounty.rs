@@ -11,13 +11,14 @@ use anchor_spl::{
 
 #[derive(Accounts)]
 pub struct ClaimBounty<'info> {
+    #[account(mut)]
     pub claimer: Signer<'info>,
     #[account(
         mut,
         seeds = [
             b"bounty",
             bounty_account.bounty_creator.key().as_ref(),
-            bounty_account.bounty_metadata.as_bytes()
+            bounty_account.index.as_bytes()
         ],
         bump = bounty_account.bump,
     )]
@@ -83,7 +84,7 @@ pub fn handler(ctx: Context<ClaimBounty>) -> Result<()> {
     let signer_seeds: &[&[&[u8]]] = &[&[
         b"bounty",
         bounty_account_key.as_ref(),
-        bounty_account.bounty_metadata.as_bytes(),
+        bounty_account.index.as_bytes(),
         &[bounty_account.bump],
     ]];
 

@@ -426,4 +426,264 @@ describe("skill_staking", () => {
       .signers([authority])
       .rpc(rpcConfig);
   });
+  it("Accept Freelancer Work", async () => {
+    const [routerCreatorKeypair, nameRouterAccount] =
+      await create_name_router();
+
+    const freelancer = await create_keypair();
+    const [verifiedUserAccount] = await create_verified_user(
+      routerCreatorKeypair,
+      nameRouterAccount,
+      freelancer.publicKey
+    );
+
+    const [freelanceAccount] = await get_pda_from_seeds([
+      Buffer.from("freelance"),
+      freelancer.publicKey.toBuffer(),
+    ]);
+
+    await program.methods
+      .addFreelancer(testMetadataLink)
+      .accounts({
+        freelancer: freelancer.publicKey,
+        freelancerVerifiedUser: verifiedUserAccount,
+        freelanceAccount: freelanceAccount,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([freelancer])
+      .rpc(rpcConfig);
+
+    const bountyCreator = await create_keypair();
+    const mintAuthority = await create_keypair();
+    const mintAddress = await createMint(
+      connection,
+      mintAuthority,
+      mintAuthority.publicKey,
+      mintAuthority.publicKey,
+      6
+    );
+    const bountyCreatorTokenAddress = await createAssociatedTokenAccount(
+      connection,
+      bountyCreator,
+      mintAddress,
+      bountyCreator.publicKey
+    );
+    const [bounty] = await get_pda_from_seeds([
+      Buffer.from("bounty"),
+      bountyCreator.publicKey.toBuffer(),
+      Buffer.from("1"),
+    ]);
+
+    const bountyTokenAddress = await getAssociatedTokenAddress(
+      mintAddress,
+      bounty,
+      true
+    );
+    await mintTo(
+      connection,
+      bountyCreator,
+      mintAddress,
+      bountyCreatorTokenAddress,
+      mintAuthority,
+      stakeAmount
+    );
+
+    await program.methods
+      .createBounty("1", new anchor.BN(stakeAmount), testMetadataLink, [], null)
+      .accounts({
+        bountyCreator: bountyCreator.publicKey,
+        bountyCreatorTokenAccount: bountyCreatorTokenAddress,
+        bountyAccount: bounty,
+        bountyTokenAccount: bountyTokenAddress,
+        systemProgram: web3.SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        usdcMint: mintAddress,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      })
+      .signers([bountyCreator])
+      .rpc(rpcConfig);
+
+    await program.methods
+      .applyBounty()
+      .accounts({
+        freelancer: freelancer.publicKey,
+        freelanceAccount: freelanceAccount,
+        bountyAccount: bounty,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([freelancer])
+      .rpc(rpcConfig);
+
+    const authority = await create_keypair();
+
+    const [multiSig] = await get_pda_from_seeds([
+      Buffer.from("multi_sig"),
+      freelancer.publicKey.toBuffer(),
+      bountyCreator.publicKey.toBuffer(),
+    ]);
+    await program.methods
+      .assignFreelancer()
+      .accounts({
+        authority: authority.publicKey,
+        freelanceAccount: freelanceAccount,
+        bountyAccount: bounty,
+        multiSig: multiSig,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([authority])
+      .rpc(rpcConfig);
+
+    await program.methods
+      .acceptBounty()
+      .accounts({
+        firstSigner: freelancer.publicKey,
+        secondSigner: bountyCreator.publicKey,
+        multiSig: multiSig,
+        freelanceAccount: freelanceAccount,
+        bountyAccount: bounty,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([freelancer, bountyCreator])
+      .rpc(rpcConfig);
+  });
+  it("Freelancer claims reward", async () => {
+    const [routerCreatorKeypair, nameRouterAccount] =
+      await create_name_router();
+
+    const freelancer = await create_keypair();
+    const [verifiedUserAccount] = await create_verified_user(
+      routerCreatorKeypair,
+      nameRouterAccount,
+      freelancer.publicKey
+    );
+
+    const [freelanceAccount] = await get_pda_from_seeds([
+      Buffer.from("freelance"),
+      freelancer.publicKey.toBuffer(),
+    ]);
+
+    await program.methods
+      .addFreelancer(testMetadataLink)
+      .accounts({
+        freelancer: freelancer.publicKey,
+        freelancerVerifiedUser: verifiedUserAccount,
+        freelanceAccount: freelanceAccount,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([freelancer])
+      .rpc(rpcConfig);
+
+    const bountyCreator = await create_keypair();
+    const mintAuthority = await create_keypair();
+    const mintAddress = await createMint(
+      connection,
+      mintAuthority,
+      mintAuthority.publicKey,
+      mintAuthority.publicKey,
+      6
+    );
+    const bountyCreatorTokenAddress = await createAssociatedTokenAccount(
+      connection,
+      bountyCreator,
+      mintAddress,
+      bountyCreator.publicKey
+    );
+    const [bounty] = await get_pda_from_seeds([
+      Buffer.from("bounty"),
+      bountyCreator.publicKey.toBuffer(),
+      Buffer.from("1"),
+    ]);
+
+    const bountyTokenAddress = await getAssociatedTokenAddress(
+      mintAddress,
+      bounty,
+      true
+    );
+    await mintTo(
+      connection,
+      bountyCreator,
+      mintAddress,
+      bountyCreatorTokenAddress,
+      mintAuthority,
+      stakeAmount
+    );
+
+    await program.methods
+      .createBounty("1", new anchor.BN(stakeAmount), testMetadataLink, [], null)
+      .accounts({
+        bountyCreator: bountyCreator.publicKey,
+        bountyCreatorTokenAccount: bountyCreatorTokenAddress,
+        bountyAccount: bounty,
+        bountyTokenAccount: bountyTokenAddress,
+        systemProgram: web3.SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        usdcMint: mintAddress,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      })
+      .signers([bountyCreator])
+      .rpc(rpcConfig);
+
+    await program.methods
+      .applyBounty()
+      .accounts({
+        freelancer: freelancer.publicKey,
+        freelanceAccount: freelanceAccount,
+        bountyAccount: bounty,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([freelancer])
+      .rpc(rpcConfig);
+
+    const authority = await create_keypair();
+
+    const [multiSig] = await get_pda_from_seeds([
+      Buffer.from("multi_sig"),
+      freelancer.publicKey.toBuffer(),
+      bountyCreator.publicKey.toBuffer(),
+    ]);
+    await program.methods
+      .assignFreelancer()
+      .accounts({
+        authority: authority.publicKey,
+        freelanceAccount: freelanceAccount,
+        bountyAccount: bounty,
+        multiSig: multiSig,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([authority])
+      .rpc(rpcConfig);
+
+    await program.methods
+      .acceptBounty()
+      .accounts({
+        firstSigner: freelancer.publicKey,
+        secondSigner: bountyCreator.publicKey,
+        multiSig: multiSig,
+        freelanceAccount: freelanceAccount,
+        bountyAccount: bounty,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([freelancer, bountyCreator])
+      .rpc(rpcConfig);
+
+    const freelancerTokenAddress = await getAssociatedTokenAddress(
+      mintAddress,
+      freelancer.publicKey,
+      false
+    );
+    await program.methods
+      .claimBounty()
+      .accounts({
+        claimer: freelancer.publicKey,
+        claimerTokenAccount: freelancerTokenAddress,
+        bountyAccount: bounty,
+        bountyTokenAccount: bountyTokenAddress,
+        usdcMint: mintAddress,
+        systemProgram: web3.SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      })
+      .signers([freelancer])
+      .rpc(rpcConfig);
+  });
 });
