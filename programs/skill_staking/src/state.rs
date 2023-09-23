@@ -39,7 +39,7 @@ pub struct Bounty {
     #[max_len(150)]
     pub claimed: Vec<Pubkey>,
     #[max_len(10)]
-    pub index: String
+    pub index: String,
 }
 
 #[account]

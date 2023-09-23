@@ -20,7 +20,7 @@ pub struct ApplyBounty<'info> {
         seeds = [
             b"bounty",
             bounty_account.bounty_creator.as_ref(),
-            bounty_account.bounty_metadata.as_bytes()
+            bounty_account.index.as_bytes()
         ],
         bump=bounty_account.bump
     )]
