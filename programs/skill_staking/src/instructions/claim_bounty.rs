@@ -51,7 +51,8 @@ pub fn handler(ctx: Context<ClaimBounty>) -> Result<()> {
 
     require!(
         bounty_account.bounty_closed == true
-            && bounty_account.bounty_assigned == Some(claimer.key())&& bounty_account.bounty_claimed == false,
+            && bounty_account.bounty_assigned == Some(claimer.key())
+            && bounty_account.bounty_claimed == false,
         DefiOSError::UnauthorizedActionAttempted
     );
 
@@ -103,7 +104,7 @@ pub fn handler(ctx: Context<ClaimBounty>) -> Result<()> {
     )?;
 
     bounty_account.bounty_claimed = true;
-    
+
     emit!(BountyClaimed {
         bounty: bounty_account.key(),
         freelancer: claimer.key(),

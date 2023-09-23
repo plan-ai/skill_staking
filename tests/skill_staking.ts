@@ -686,4 +686,85 @@ describe("skill_staking", () => {
       .signers([freelancer])
       .rpc(rpcConfig);
   });
+  it("Staking on a freelancers skill", async () => {
+    const [routerCreatorKeypair, nameRouterAccount] =
+      await create_name_router();
+
+    const freelancer = await create_keypair();
+    const [verifiedUserAccount] = await create_verified_user(
+      routerCreatorKeypair,
+      nameRouterAccount,
+      freelancer.publicKey
+    );
+
+    const [freelanceAccount] = await get_pda_from_seeds([
+      Buffer.from("freelance"),
+      freelancer.publicKey.toBuffer(),
+    ]);
+
+    await program.methods
+      .addFreelancer(testMetadataLink)
+      .accounts({
+        freelancer: freelancer.publicKey,
+        freelancerVerifiedUser: verifiedUserAccount,
+        freelanceAccount: freelanceAccount,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([freelancer])
+      .rpc(rpcConfig);
+
+    const mintAuthority = await create_keypair();
+    const staker = await create_keypair();
+
+    const mintAddress = await createMint(
+      connection,
+      mintAuthority,
+      mintAuthority.publicKey,
+      mintAuthority.publicKey,
+      6
+    );
+    const stakerTokenAddress = await createAssociatedTokenAccount(
+      connection,
+      staker,
+      mintAddress,
+      staker.publicKey
+    );
+
+    await mintTo(
+      connection,
+      staker,
+      mintAddress,
+      stakerTokenAddress,
+      mintAuthority,
+      stakeAmount
+    );
+
+    const [skillStake] = await get_pda_from_seeds([
+      Buffer.from("skillStake"),
+      Buffer.from("Python"),
+      freelancer.publicKey.toBuffer(),
+    ]);
+
+    const skillStakeTokenAddress = await getAssociatedTokenAddress(
+      mintAddress,
+      skillStake,
+      true
+    );
+
+    await program.methods
+      .stakeSkillset("Python", new anchor.BN(stakeAmount))
+      .accounts({
+        staker: staker.publicKey,
+        freelanceAccount: freelanceAccount,
+        skillStake: skillStake,
+        skillStakeTokenAccount: skillStakeTokenAddress,
+        usdcMint: mintAddress,
+        stakerTokenAccount: stakerTokenAddress,
+        systemProgram: web3.SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      })
+      .signers([staker])
+      .rpc(rpcConfig);
+  });
 });
